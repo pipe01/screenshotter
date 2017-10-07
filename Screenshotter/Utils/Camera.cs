@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
@@ -20,6 +21,8 @@ namespace Screenshotter.Utils
 
         public static Image TakeScreenshot(float scale = 1.0f)
         {
+            Stopwatch sw = Stopwatch.StartNew();
+
             var size = GetRealScreenshotSize();
             var bmpScreenshot = new Bitmap(size.Width, size.Height, PixelFormat.Format32bppArgb);
             
@@ -34,15 +37,24 @@ namespace Screenshotter.Utils
                 0,
                 size,
                 CopyPixelOperation.SourceCopy);
-            
+
+            Bitmap ret = null;
+
             if (Math.Abs(scale - 1.0f) < float.Epsilon) //scale ~= 1.0f
-                return bmpScreenshot;
+            {
+                ret = bmpScreenshot;
+            }
             else
             {
                 int w = (int)(size.Width * scale);
                 int h = (int)(size.Height * scale);
-                return ResizeImage(bmpScreenshot, w, h);
+                ret = ResizeImage(bmpScreenshot, w, h);
             }
+
+            sw.Stop();
+            Debug.WriteLine("Screenshot time: " + sw.Elapsed);
+
+            return ret;
         }
 
         private static Bitmap ResizeImage(Image image, int width, int height)

@@ -39,6 +39,7 @@
             this.notifyIcon1 = new System.Windows.Forms.NotifyIcon(this.components);
             this.chkEffect = new System.Windows.Forms.CheckBox();
             this.chkWinStart = new System.Windows.Forms.CheckBox();
+            this.button2 = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.tbScale)).BeginInit();
             this.SuspendLayout();
             // 
@@ -137,11 +138,22 @@
             this.chkWinStart.UseVisualStyleBackColor = true;
             this.chkWinStart.CheckedChanged += new System.EventHandler(this.chkWinStart_CheckedChanged);
             // 
+            // button2
+            // 
+            this.button2.Location = new System.Drawing.Point(33, 79);
+            this.button2.Name = "button2";
+            this.button2.Size = new System.Drawing.Size(75, 23);
+            this.button2.TabIndex = 8;
+            this.button2.Text = "button2";
+            this.button2.UseVisualStyleBackColor = true;
+            this.button2.Click += new System.EventHandler(this.button2_Click_1);
+            // 
             // frmMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(284, 135);
+            this.Controls.Add(this.button2);
             this.Controls.Add(this.chkWinStart);
             this.Controls.Add(this.chkEffect);
             this.Controls.Add(this.button1);
@@ -176,6 +188,7 @@
         private System.Windows.Forms.NotifyIcon notifyIcon1;
         private System.Windows.Forms.CheckBox chkEffect;
         private System.Windows.Forms.CheckBox chkWinStart;
+        private System.Windows.Forms.Button button2;
     }
 }
 

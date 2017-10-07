@@ -238,5 +238,16 @@ namespace Screenshotter
         {
             new frmImageEditor(new Bitmap(50, 50), true).Show();
         }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            Stopwatch sw = Stopwatch.StartNew();
+            for (int i = 0; i < 50; i++)
+            {
+                Camera.TakeScreenshot();
+            }
+            sw.Stop();
+            Debug.WriteLine(sw.Elapsed);
+        }
     }
 }
