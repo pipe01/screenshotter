@@ -10,7 +10,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Screenshotter
+namespace Screenshotter.Utils
 {
     public static class Camera
     {
@@ -35,8 +35,7 @@ namespace Screenshotter
                 size,
                 CopyPixelOperation.SourceCopy);
             
-            //scale == 1.0f
-            if (Math.Abs(scale - 1.0f) < float.Epsilon)
+            if (Math.Abs(scale - 1.0f) < float.Epsilon) //scale ~= 1.0f
                 return bmpScreenshot;
             else
             {

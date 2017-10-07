@@ -6,7 +6,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace Screenshotter
+namespace Screenshotter.Utils
 {
     public static class WindowsStartup
     {
