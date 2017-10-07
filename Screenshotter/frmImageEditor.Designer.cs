@@ -1,6 +1,6 @@
 ﻿namespace Screenshotter
 {
-    partial class frmImagePreview
+    partial class frmImageEditor
     {
         /// <summary>
         /// Required designer variable.
@@ -33,13 +33,14 @@
             this.resetZoomToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
             this.imageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.cropToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
-            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
             this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator2 = new System.Windows.Forms.ToolStripSeparator();
+            this.cropToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.taskDialog = new Ookii.Dialogs.TaskDialog(this.components);
             this.taskDialogButton1 = new Ookii.Dialogs.TaskDialogButton(this.components);
             this.taskDialogButton2 = new Ookii.Dialogs.TaskDialogButton(this.components);
             this.taskDialogButton3 = new Ookii.Dialogs.TaskDialogButton(this.components);
+            this.timerSelectionBlink = new System.Windows.Forms.Timer(this.components);
             this.cmsRightClick.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -74,24 +75,24 @@
             this.imageToolStripMenuItem.Size = new System.Drawing.Size(135, 22);
             this.imageToolStripMenuItem.Text = "Selection";
             // 
-            // cropToolStripMenuItem1
+            // copyToolStripMenuItem
             // 
-            this.cropToolStripMenuItem1.Name = "cropToolStripMenuItem1";
-            this.cropToolStripMenuItem1.Size = new System.Drawing.Size(152, 22);
-            this.cropToolStripMenuItem1.Text = "Crop";
-            this.cropToolStripMenuItem1.Click += new System.EventHandler(this.cropToolStripMenuItem1_Click);
+            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
+            this.copyToolStripMenuItem.Size = new System.Drawing.Size(102, 22);
+            this.copyToolStripMenuItem.Text = "Copy";
+            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
             // 
             // toolStripSeparator2
             // 
             this.toolStripSeparator2.Name = "toolStripSeparator2";
-            this.toolStripSeparator2.Size = new System.Drawing.Size(149, 6);
+            this.toolStripSeparator2.Size = new System.Drawing.Size(99, 6);
             // 
-            // copyToolStripMenuItem
+            // cropToolStripMenuItem1
             // 
-            this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-            this.copyToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.copyToolStripMenuItem.Text = "Copy";
-            this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
+            this.cropToolStripMenuItem1.Name = "cropToolStripMenuItem1";
+            this.cropToolStripMenuItem1.Size = new System.Drawing.Size(102, 22);
+            this.cropToolStripMenuItem1.Text = "Crop";
+            this.cropToolStripMenuItem1.Click += new System.EventHandler(this.cropToolStripMenuItem1_Click);
             // 
             // taskDialog
             // 
@@ -116,7 +117,13 @@
             this.taskDialogButton3.Default = true;
             this.taskDialogButton3.Text = "Keep editing";
             // 
-            // frmImagePreview
+            // timerSelectionBlink
+            // 
+            this.timerSelectionBlink.Enabled = true;
+            this.timerSelectionBlink.Interval = 500;
+            this.timerSelectionBlink.Tick += new System.EventHandler(this.timerSelectionBlink_Tick);
+            // 
+            // frmImageEditor
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
@@ -125,13 +132,15 @@
             this.ClientSize = new System.Drawing.Size(284, 262);
             this.Cursor = System.Windows.Forms.Cursors.Cross;
             this.DoubleBuffered = true;
-            this.Name = "frmImagePreview";
+            this.KeyPreview = true;
+            this.Name = "frmImageEditor";
             this.ShowIcon = false;
             this.Text = "Image preview";
             this.WindowState = System.Windows.Forms.FormWindowState.Maximized;
             this.FormClosing += new System.Windows.Forms.FormClosingEventHandler(this.frmImagePreview_FormClosing);
             this.Load += new System.EventHandler(this.frmImagePreview_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.frmImagePreview_Paint);
+            this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmImageEditor_KeyDown);
             this.MouseClick += new System.Windows.Forms.MouseEventHandler(this.frmImagePreview_MouseClick);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmImagePreview_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.frmImagePreview_MouseMove);
@@ -153,5 +162,6 @@
         private Ookii.Dialogs.TaskDialogButton taskDialogButton1;
         private Ookii.Dialogs.TaskDialogButton taskDialogButton2;
         private Ookii.Dialogs.TaskDialogButton taskDialogButton3;
+        private System.Windows.Forms.Timer timerSelectionBlink;
     }
 }

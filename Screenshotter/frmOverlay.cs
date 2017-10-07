@@ -22,7 +22,7 @@ namespace Screenshotter
 
         private void frmOverlay_Load(object sender, EventArgs e)
         {
-            this.Bounds = Screen.PrimaryScreen.Bounds;
+            this.Bounds = Camera.CaptureScreen.Bounds;
             timer1.Interval = Duration / 20;
         }
 

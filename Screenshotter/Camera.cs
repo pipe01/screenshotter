@@ -16,6 +16,8 @@ namespace Screenshotter
     {
         public static readonly string[] BannedFormats = { "MemoryBmp", "Icon" };
 
+        public static Screen CaptureScreen { get; set} = Screen.PrimaryScreen;
+
         public static Image TakeScreenshot(float scale = 1.0f)
         {
             var size = GetRealScreenshotSize();
@@ -26,14 +28,15 @@ namespace Screenshotter
             
             // Take the screenshot from the upper left corner to the right bottom corner.
             gfxScreenshot.CopyFromScreen(
-                Screen.PrimaryScreen.Bounds.X,
-                Screen.PrimaryScreen.Bounds.Y,
+                CaptureScreen.Bounds.X,
+                CaptureScreen.Bounds.Y,
                 0,
                 0,
                 size,
                 CopyPixelOperation.SourceCopy);
             
-            if (scale == 1.0f)
+            //scale == 1.0f
+            if (Math.Abs(scale - 1.0f) < float.Epsilon)
                 return bmpScreenshot;
             else
             {
@@ -70,7 +73,7 @@ namespace Screenshotter
 
         public static Size GetRealScreenshotSize()
         {
-            return Screen.PrimaryScreen.Bounds.Size;
+            return CaptureScreen.Bounds.Size;
         }
 
         public static void PlaySound()

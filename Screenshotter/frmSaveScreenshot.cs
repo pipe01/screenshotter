@@ -78,7 +78,7 @@ namespace Screenshotter
 
         private void picPreview_Click(object sender, EventArgs e)
         {
-            var frm = new frmImagePreview(_Image);
+            var frm = new frmImageEditor(_Image);
             frm.ShowDialog();
             _Image = frm.Image;
 

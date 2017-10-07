@@ -15,7 +15,7 @@ namespace Screenshotter
 
         public static bool Enabled
         {
-            get => rkApp.GetValue(AppName) != null;
+            get => rkApp.GetValue(AppName) as string == Application.ExecutablePath;
             set
             {
                 if (value)

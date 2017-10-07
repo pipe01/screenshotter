@@ -5,11 +5,12 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Screenshotter.Uploaders
+namespace Screenshotter
 {
-    public interface IUploader
+    struct EditorState
     {
-        void UploadImage(Image img, string name);
-        bool Authenticate();
+        public Image CurrentImage;
+        public Point ImageLocation;
+        public float ZoomLevel;
     }
 }

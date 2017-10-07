@@ -55,14 +55,15 @@ namespace Screenshotter
             _Hook.RegisterHotKey(Screenshotter.ModifierKeys.Shift, Keys.PrintScreen);
             _Hook.RegisterHotKey(Screenshotter.ModifierKeys.Control |
                                  Screenshotter.ModifierKeys.Shift, Keys.PrintScreen);
-
-            string[] bannedFormats = { "MemoryBmp", "Icon" };
-
+            _Hook.RegisterHotKey(Screenshotter.ModifierKeys.Control |
+                                 Screenshotter.ModifierKeys.Shift |
+                                 Screenshotter.ModifierKeys.Alt, Keys.PrintScreen);
+            
             _FileFormats = Camera.GetAvailableFormats().ToArray();
 
             foreach (var item in _FileFormats)
             {
-                cbFileFormats.Items.Add(item);
+                cbFileFormats.Items.Add("." + item.ToLower());
             }
 
             LoadConfig();
@@ -70,22 +71,41 @@ namespace Screenshotter
 
         private void _Hook_KeyPressed(object sender, KeyPressedEventArgs e)
         {
-            bool saveAs = (e.Modifier & Screenshotter.ModifierKeys.Control) == Screenshotter.ModifierKeys.Control;
+            bool shift = ModifierDown(e.Modifier, Screenshotter.ModifierKeys.Shift);
+            bool ctrl = ModifierDown(e.Modifier, Screenshotter.ModifierKeys.Control);
+            bool alt = ModifierDown(e.Modifier, Screenshotter.ModifierKeys.Alt);
 
-            if (_Stopwatch.ElapsedMilliseconds < 2000 && _Stopwatch.IsRunning)
+            bool saveAs = (shift && ctrl) && !alt;
+            bool cropShot = (shift && ctrl && alt) && !saveAs;
+
+            TakeScreenshot(saveAs, cropShot);
+        }
+
+        bool ModifierDown(ModifierKeys mods, ModifierKeys target)
+        {
+            return (mods & target) == target;
+        }
+
+        void TakeScreenshot(bool saveAs = false, bool cropShot = false)
+        {
+            if (_Stopwatch.ElapsedMilliseconds < 1000 && _Stopwatch.IsRunning)
                 return;
 
             _Stopwatch.Restart();
-
+            
             string name = Camera.GenerateFileName(_Config.FileFormat);
-            var img = Camera.TakeScreenshot(_Config.ImageScale);
+            var img = Camera.TakeScreenshot(cropShot ? 1 : _Config.ImageScale);
 
-            if (_Config.ScreenEffect)
+            if (_Config.ScreenEffect && !cropShot)
                 new frmOverlay().Show();
 
             Camera.PlaySound();
 
-            if (saveAs)
+            if (cropShot)
+            {
+                new frmImageEditor(img, true).Show();
+            }
+            else if (saveAs)
             {
                 new frmSaveScreenshot(img, DateTime.Now, _Config).Show();
             }
@@ -93,7 +113,7 @@ namespace Screenshotter
             {
                 img.Save(Path.Combine(_Config.StoreFolder, name));
             }
-            
+
             GC.Collect();
         }
 
@@ -173,6 +193,16 @@ namespace Screenshotter
         private void chkWinStart_CheckedChanged(object sender, EventArgs e)
         {
             WindowsStartup.Enabled = chkWinStart.Checked;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            new frmImageEditor(new Bitmap(50, 50), true).Show();
+        }
+
+        private void button3_Click(object sender, EventArgs e)
+        {
+            //new frmCropShotViewer(new Bitmap(50, 50), Cursor.Position).Show();
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Drawing.Imaging;
 using System.IO;
@@ -9,16 +10,11 @@ using System.Threading.Tasks;
 
 namespace Screenshotter
 {
-    [DataContract]
     public class Configuration
     {
-        [DataMember]
         public string FileFormat { get; set; } = "Png";
-        [DataMember]
         public string StoreFolder { get; set; } = null;
-        [DataMember]
         public float ImageScale { get; set; } = 1.0f;
-        [DataMember]
         public bool ScreenEffect { get; set; } = true;
 
         public void SetFileFormat(ImageFormat format)
@@ -47,12 +43,12 @@ namespace Screenshotter
             if (!File.Exists("config.json"))
                 new Configuration().Save();
 
-            return JSONSerializer.Deserialize<Configuration>(File.ReadAllText("config.json"));
+            return JsonConvert.DeserializeObject<Configuration>(File.ReadAllText("config.json"));
         }
 
         public void Save()
         {
-            File.WriteAllText("config.json", JSONSerializer.Serialize(this));
+            File.WriteAllText("config.json", JsonConvert.SerializeObject(this));
         }
     }
 }

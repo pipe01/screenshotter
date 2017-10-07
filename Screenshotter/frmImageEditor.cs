@@ -11,22 +11,22 @@ using System.Windows.Forms;
 
 namespace Screenshotter
 {
-    public partial class frmImagePreview : Form
+    public partial class frmImageEditor : Form
     {
         public Image Image;
 
         Image _OriginalImage;
 
-        bool _Moving, _Selecting, _Selected, _Changes;
+        bool _Moving, _Selecting, _Selected, _Changes, _CropShot, _MouseInSelection;
 
         Point _MovePrev = Point.Empty,
               _ImageLocation = Point.Empty,
               _SelPoint = Point.Empty;
 
         float _Scale = 1.0f;
+        uint _BlinkState = 0;
 
         Rectangle _SelectionRect;
-
         Rectangle TempSelectionRect
         {
             get
@@ -34,17 +34,58 @@ namespace Screenshotter
                 var p1 = ImageToViewport(_MovePrev);
                 var p2 = ImageToViewport(_SelPoint);
 
-                return GetRectangle(p1, p2);
+                return SnapToGrid(GetRectangle(p1, p2), _Scale);
             }
         }
 
-        public frmImagePreview(Image img)
+        UndoRedo<EditorState> _Undo = new UndoRedo<EditorState>();
+
+
+        public frmImageEditor(Image img, bool cropShot = false)
         {
             InitializeComponent();
             this.MouseWheel += FrmImagePreview_MouseWheel;
-            
+
+            SetStyle(ControlStyles.DoubleBuffer |
+                     ControlStyles.AllPaintingInWmPaint |
+                     ControlStyles.UserPaint, true);
+
             Image = img;
             _OriginalImage = img;
+            _CropShot = cropShot;
+
+            _Undo.LoadState += _Undo_LoadState;
+            
+            if (cropShot)
+                GoFullscreen();
+        }
+
+        private void frmImagePreview_Load(object sender, EventArgs e)
+        {
+            ResetZoom();
+
+            _Undo.NewState(new EditorState
+            {
+                CurrentImage = Image,
+                ImageLocation = _ImageLocation,
+                ZoomLevel = 1
+            });
+        }
+
+        private void _Undo_LoadState(object sender, UndoRedo<EditorState>.LoadStateEventArgs e)
+        {
+            Image = e.NewState.CurrentImage;
+            _ImageLocation = e.NewState.ImageLocation;
+            _Scale = e.NewState.ZoomLevel;
+
+            this.Refresh();
+        }
+
+        private void GoFullscreen()
+        {
+            this.FormBorderStyle = FormBorderStyle.None;
+            this.Bounds = Screen.PrimaryScreen.Bounds;
+            this.TopMost = true;
         }
 
         private void FrmImagePreview_MouseWheel(object sender, MouseEventArgs e)
@@ -86,7 +127,9 @@ namespace Screenshotter
                 sourceRect,
                 GraphicsUnit.Pixel);
 
-            var pen = new Pen(Color.White, 1.5f)
+            var penColor = _BlinkState % 2 == 0 ? Color.Gray : Color.White;
+
+            var pen = new Pen(penColor, _Scale)
             {
                 DashStyle = DashStyle.DashDotDot
             };
@@ -136,6 +179,10 @@ namespace Screenshotter
                 _SelPoint = ViewportToImage(e.Location);
                 this.Refresh();
             }
+            else if (_Selected && e.Button == MouseButtons.None && _Selected)
+            {
+                _MouseInSelection = _SelectionRect.Contains(e.Location);
+            }
         }
 
         private void frmImagePreview_MouseUp(object sender, MouseEventArgs e)
@@ -161,7 +208,12 @@ namespace Screenshotter
                 else
                 {
                     _Selected = true;
-                    _SelectionRect = GetRectangle(_MovePrev, _SelPoint);
+                    _SelectionRect = SnapToGrid(GetRectangle(_MovePrev, _SelPoint), _Scale);
+
+                    if (_CropShot)
+                    {
+                        StartCropShot();
+                    }
                 }
             }
             
@@ -171,6 +223,12 @@ namespace Screenshotter
             this.Cursor = Cursors.Cross;
 
             this.Refresh();
+        }
+
+        void StartCropShot()
+        {
+            new frmCropShotViewer(Image.Crop(_SelectionRect), Image, _SelectionRect.Location).Show();
+            this.Close();
         }
 
         Rectangle GetRectangle(Point p1, Point p2)
@@ -204,6 +262,25 @@ namespace Screenshotter
                 new Size((int)(rect.Width * _Scale),
                          (int)(rect.Height * _Scale)));
         }
+        Point SnapToGrid(Point p, float grid)
+        {
+            return new Point(
+                (int)(p.X - (p.X % grid)),
+                (int)(p.Y - (p.Y % grid)));
+        }
+        Rectangle SnapToGrid(Rectangle rect, float grid)
+        {
+            /*return new Rectangle(
+                SnapToGrid(rect.Location, grid),
+                new Size(SnapToGrid(new Point(rect.Size), grid)));*/
+            return rect;
+        }
+        Point GetCenteredImageLocation(int w, int h)
+        {
+            return new Point(
+                -(this.Width / 2 - w / 2),
+                -(this.Height / 2 - h / 2));
+        }
 
         void ResetZoom()
         {
@@ -211,12 +288,48 @@ namespace Screenshotter
 
             int w = (int)(Image.Width * _Scale);
             int h = (int)(Image.Height * _Scale);
-            
-            _ImageLocation = new Point(
-                -(this.Width / 2 - w / 2),
-                -(this.Height / 2 - h / 2));
+
+            _ImageLocation = GetCenteredImageLocation(w, h);
 
             this.Refresh();
+        }
+
+        
+        private void frmImageEditor_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Escape)
+                this.Close();
+
+            if (e.KeyCode == Keys.Z && CheckModifiers(e.Modifiers, true))
+                _Undo.Undo();
+            else if (e.KeyCode == Keys.Y && CheckModifiers(e.Modifiers, true))
+                _Undo.Redo();
+        }
+
+        private void timerSelectionBlink_Tick(object sender, EventArgs e)
+        {
+            if (_BlinkState == uint.MaxValue)
+                _BlinkState = 0;
+            else
+                _BlinkState++;
+
+            this.Refresh();
+        }
+
+        bool CheckModifiers(Keys modifiers, bool ctrl = false, bool alt = false, bool shift = false)
+        {
+            bool ret = true;
+
+            if (((modifiers & Keys.Control) == Keys.Control) != ctrl && ret)
+                ret = false;
+
+            if (((modifiers & Keys.Shift) == Keys.Shift) != shift && ret)
+                ret = false;
+
+            if (((modifiers & Keys.Alt) == Keys.Alt) != alt && ret)
+                ret = false;
+            
+            return ret;
         }
 
         private void frmImagePreview_FormClosing(object sender, FormClosingEventArgs e)
@@ -229,8 +342,10 @@ namespace Screenshotter
                 switch (btnIndex)
                 {
                     case 0: //Save changes
+                        this.DialogResult = DialogResult.OK;
                         break;
                     case 1: //Discard changes
+                        this.DialogResult = DialogResult.Ignore;
                         this.Image = _OriginalImage;
                         break;
                     case 2: //Keep editing
@@ -250,11 +365,14 @@ namespace Screenshotter
             _Changes = true;
             _Selected = false;
 
-            Image cropped = Image.Crop(_SelectionRect);
-            
-            this.Image = cropped;
+            var newImage = Image.Crop(_SelectionRect);
 
-            ResetZoom();
+            _Undo.NewState(new EditorState
+            {
+                CurrentImage = newImage,
+                ImageLocation = GetCenteredImageLocation(newImage.Width, newImage.Height),
+                ZoomLevel = 1
+            }, true);
         }
         
         private void resetZoomToolStripMenuItem_Click(object sender, EventArgs e)
@@ -265,11 +383,6 @@ namespace Screenshotter
         private void frmImagePreview_MouseClick(object sender, MouseEventArgs e)
         {
             this.Refresh();
-        }
-
-        private void frmImagePreview_Load(object sender, EventArgs e)
-        {
-            ResetZoom();
         }
     }
 }
