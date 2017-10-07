@@ -16,7 +16,7 @@ namespace Screenshotter
     {
         public static readonly string[] BannedFormats = { "MemoryBmp", "Icon" };
 
-        public static Screen CaptureScreen { get; set} = Screen.PrimaryScreen;
+        public static Screen CaptureScreen { get; set; } = Screen.PrimaryScreen;
 
         public static Image TakeScreenshot(float scale = 1.0f)
         {
