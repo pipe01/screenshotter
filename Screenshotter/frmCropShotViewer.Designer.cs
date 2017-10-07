@@ -31,8 +31,9 @@
             this.components = new System.ComponentModel.Container();
             this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
             this.cropImageToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.closeToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.timerBlack = new System.Windows.Forms.Timer(this.components);
             this.contextMenuStrip1.SuspendLayout();
             this.SuspendLayout();
             // 
@@ -48,21 +49,27 @@
             // cropImageToolStripMenuItem
             // 
             this.cropImageToolStripMenuItem.Name = "cropImageToolStripMenuItem";
-            this.cropImageToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
+            this.cropImageToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
             this.cropImageToolStripMenuItem.Text = "Edit image";
             this.cropImageToolStripMenuItem.Click += new System.EventHandler(this.cropImageToolStripMenuItem_Click);
-            // 
-            // closeToolStripMenuItem
-            // 
-            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
-            this.closeToolStripMenuItem.Size = new System.Drawing.Size(152, 22);
-            this.closeToolStripMenuItem.Text = "Close";
-            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
             // 
             // toolStripSeparator1
             // 
             this.toolStripSeparator1.Name = "toolStripSeparator1";
             this.toolStripSeparator1.Size = new System.Drawing.Size(127, 6);
+            // 
+            // closeToolStripMenuItem
+            // 
+            this.closeToolStripMenuItem.Name = "closeToolStripMenuItem";
+            this.closeToolStripMenuItem.Size = new System.Drawing.Size(130, 22);
+            this.closeToolStripMenuItem.Text = "Close";
+            this.closeToolStripMenuItem.Click += new System.EventHandler(this.closeToolStripMenuItem_Click);
+            // 
+            // timerBlack
+            // 
+            this.timerBlack.Enabled = true;
+            this.timerBlack.Interval = 10;
+            this.timerBlack.Tick += new System.EventHandler(this.timerBlack_Tick);
             // 
             // frmCropShotViewer
             // 
@@ -83,6 +90,7 @@
             this.Text = "Crop shot";
             this.TopMost = true;
             this.Load += new System.EventHandler(this.frmCropShotViewer_Load);
+            this.Paint += new System.Windows.Forms.PaintEventHandler(this.frmCropShotViewer_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmCropShotViewer_KeyDown);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmCropShotViewer_MouseDown);
             this.MouseMove += new System.Windows.Forms.MouseEventHandler(this.frmCropShotViewer_MouseMove);
@@ -98,5 +106,6 @@
         private System.Windows.Forms.ToolStripMenuItem cropImageToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem closeToolStripMenuItem;
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.Timer timerBlack;
     }
 }

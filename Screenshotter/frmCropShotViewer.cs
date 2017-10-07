@@ -26,7 +26,8 @@ namespace Screenshotter
         private Image _Image, _OriginalImage;
         private bool _Moving;
         private Point _MouseStartPos, _FormStartPos;
-        
+        private int _BlackProgress = 100;
+
         #region Borderless resizing
         private const int
             HTLEFT = 10,
@@ -49,7 +50,7 @@ namespace Screenshotter
         Rectangle TopRight { get { return new Rectangle(this.ClientSize.Width - Border, 0, Border, Border); } }
         Rectangle BottomLeft { get { return new Rectangle(0, this.ClientSize.Height - Border, Border, Border); } }
         Rectangle BottomRight { get { return new Rectangle(this.ClientSize.Width - Border, this.ClientSize.Height - Border, Border, Border); } }
-        
+
         protected override void WndProc(ref Message message)
         {
             base.WndProc(ref message);
@@ -70,6 +71,16 @@ namespace Screenshotter
             }
         }
         #endregion
+
+        private void timerBlack_Tick(object sender, EventArgs e)
+        {
+            _BlackProgress--;
+
+            if (--_BlackProgress >= 0)
+                this.Refresh();
+            else
+                timerBlack.Stop();
+        }
 
         private void frmCropShotViewer_MouseDown(object sender, MouseEventArgs e)
         {
@@ -123,6 +134,14 @@ namespace Screenshotter
         private void frmCropShotViewer_Load(object sender, EventArgs e)
         {
             LoadImage();
+        }
+
+        private void frmCropShotViewer_Paint(object sender, PaintEventArgs e)
+        {
+            int progressByte = (int)((_BlackProgress / 100f) * 255);
+            Color color = Color.FromArgb(progressByte, 0, 0, 0);
+
+            e.Graphics.FillRectangle(new SolidBrush(color), 0, 0, this.Width, this.Height);
         }
         
         private void closeToolStripMenuItem_Click(object sender, EventArgs e)
