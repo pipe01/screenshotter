@@ -21,12 +21,15 @@ namespace Screenshotter
             _Image = image;
             _OriginalImage = originalImage;
             _FormStartPos = startPos;
+
+            LoadImage();
         }
 
         private Image _Image, _OriginalImage;
         private bool _Moving;
         private Point _MouseStartPos, _FormStartPos;
-        private int _BlackProgress = 100;
+        private int _BlackProgress = 0;
+        private int _BlackWay = 6;
 
         #region Borderless resizing
         private const int
@@ -74,12 +77,21 @@ namespace Screenshotter
 
         private void timerBlack_Tick(object sender, EventArgs e)
         {
-            _BlackProgress--;
+            _BlackProgress += _BlackWay;
 
-            if (--_BlackProgress >= 0)
-                this.Refresh();
-            else
+            if (_BlackProgress > 100)
+            {
+                _BlackWay = -_BlackWay;
+                _BlackProgress = 100;
+            }
+            else if (_BlackProgress < 0)
+            {
+                _BlackWay = -_BlackWay;
+                _BlackProgress = 0;
                 timerBlack.Stop();
+            }
+
+            this.Refresh();
         }
 
         private void frmCropShotViewer_MouseDown(object sender, MouseEventArgs e)
@@ -133,7 +145,7 @@ namespace Screenshotter
 
         private void frmCropShotViewer_Load(object sender, EventArgs e)
         {
-            LoadImage();
+            
         }
 
         private void frmCropShotViewer_Paint(object sender, PaintEventArgs e)

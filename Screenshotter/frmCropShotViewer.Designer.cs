@@ -68,7 +68,7 @@
             // timerBlack
             // 
             this.timerBlack.Enabled = true;
-            this.timerBlack.Interval = 10;
+            this.timerBlack.Interval = 5;
             this.timerBlack.Tick += new System.EventHandler(this.timerBlack_Tick);
             // 
             // frmCropShotViewer
