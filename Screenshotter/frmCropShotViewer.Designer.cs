@@ -89,7 +89,6 @@
             this.StartPosition = System.Windows.Forms.FormStartPosition.Manual;
             this.Text = "Crop shot";
             this.TopMost = true;
-            this.Load += new System.EventHandler(this.frmCropShotViewer_Load);
             this.Paint += new System.Windows.Forms.PaintEventHandler(this.frmCropShotViewer_Paint);
             this.KeyDown += new System.Windows.Forms.KeyEventHandler(this.frmCropShotViewer_KeyDown);
             this.MouseDown += new System.Windows.Forms.MouseEventHandler(this.frmCropShotViewer_MouseDown);

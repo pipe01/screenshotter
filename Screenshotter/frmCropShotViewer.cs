@@ -143,11 +143,6 @@ namespace Screenshotter
                 this.Close();
         }
 
-        private void frmCropShotViewer_Load(object sender, EventArgs e)
-        {
-            
-        }
-
         private void frmCropShotViewer_Paint(object sender, PaintEventArgs e)
         {
             int progressByte = (int)((_BlackProgress / 100f) * 255);
