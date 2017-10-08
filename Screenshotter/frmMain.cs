@@ -236,25 +236,5 @@ namespace Screenshotter
         {
             WindowsStartup.Enabled = chkWinStart.Checked;
         }
-
-        private void button2_Click(object sender, EventArgs e)
-        {
-            new frmImageEditor(new Bitmap(50, 50), true).Show();
-        }
-
-        private void button2_Click_1(object sender, EventArgs e)
-        {
-            var windows = WindowScanner.GetAllWindows().ToList();
-            Bitmap bmp = new Bitmap(1366, 768);
-            Graphics g = Graphics.FromImage(bmp);
-            g.Clear(Color.White);
-
-            foreach (var item in windows)
-            {
-                g.DrawRectangle(new Pen(Color.Black, 2), item.Bounds);
-            }
-
-            bmp.Save("test.bmp");
-        }
     }
 }

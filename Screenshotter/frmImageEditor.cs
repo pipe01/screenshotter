@@ -23,9 +23,7 @@ namespace Screenshotter
         Point _MovePrev = Point.Empty,
               _ImageLocation = Point.Empty,
               _SelPoint = Point.Empty;
-
-        IList<WindowScanner.Window> _Windows;
-
+        
         uint _BlinkState = 0;
 
         int _Scale = 100;
@@ -46,9 +44,7 @@ namespace Screenshotter
                 return SnapToGrid(GetRectangle(p1, p2), _Scale);
             }
         }
-
-        Rectangle _MouseOverWindowRect = Rectangle.Empty;
-
+        
         UndoRedo<EditorState> _Undo = new UndoRedo<EditorState>();
 
 
@@ -66,9 +62,7 @@ namespace Screenshotter
             _CropShot = cropShot;
 
             _Undo.LoadState += _Undo_LoadState;
-
-            _Windows = windows;
-
+            
             if (cropShot)
                 GoFullscreen();
         }
@@ -141,13 +135,7 @@ namespace Screenshotter
                 new Rectangle(Point.Empty, this.Size),
                 sourceRect,
                 GraphicsUnit.Pixel);
-
-            if (_MouseOverWindowRect != Rectangle.Empty)
-            {
-                Rectangle rect = new Rectangle(Point.Subtract(_MouseOverWindowRect.Location, new Size(_ImageLocation.X, _ImageLocation.Y)), _MouseOverWindowRect.Size);
-                e.Graphics.DrawRectangle(new Pen(Color.Lime, 2), rect);
-            }
-
+            
             var penColor = _BlinkState % 2 == 0 ? Color.Gray : Color.White;
             var selPen = new Pen(penColor, Scale)
             {
@@ -203,9 +191,7 @@ namespace Screenshotter
             {
                 _MouseInSelection = _SelectionRect.Contains(e.Location);
             }
-
-            Point realMousePos = this.PointToScreen(e.Location);
-            _MouseOverWindowRect = GetWindowOnMouse(realMousePos)?.Bounds ?? Rectangle.Empty;
+            
             this.Refresh();
         }
 
@@ -254,36 +240,7 @@ namespace Screenshotter
             new frmCropShotViewer(Image.Crop(_SelectionRect), Image, _SelectionRect.Location).Show();
             this.Close();
         }
-
-        WindowScanner.Window? GetWindowOnMouse(Point mousePos)
-        {
-            var windows = GetWindowsByOrder();
-
-            foreach (var item in windows)
-            {
-                if (item.Window.Bounds.Contains(mousePos))
-                    return item.Window;
-            }
-
-            return null;
-        }
-
-        List<(WindowScanner.Window Window, int ZOrder)> GetWindowsByOrder()
-        {
-            var zOrders = WindowScanner.GetZOrder(_Windows.Select(o => o.RawPtr).ToArray());
-            List<(WindowScanner.Window Window, int ZOrder)> list = new List<(WindowScanner.Window Window, int ZOrder)>();
-
-            for (int i = 0; i < zOrders.Length; i++)
-            {
-                int order = zOrders[i];
-                list.Add((_Windows[i], order));
-            }
-
-            list.Sort((a, b) => a.ZOrder.CompareTo(b.ZOrder));
-
-            return list;
-        }
-
+        
         Rectangle GetRectangle(Point p1, Point p2)
         {
             bool invertX = _MovePrev.X > _SelPoint.X;
