@@ -45,7 +45,7 @@
       <HintPath>..\packages\Newtonsoft.Json.10.0.3\lib\net45\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="Ookii.Dialogs">
-      <HintPath>C:\Users\PiW7\Downloads\Ooki.Dialogs\Ookii.Dialogs.dll</HintPath>
+      <HintPath>..\lib\Ookii.Dialogs.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
