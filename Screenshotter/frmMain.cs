@@ -123,6 +123,9 @@ namespace Screenshotter
             //Generate file name for screenshot
             string name = Camera.GenerateFileName(_Config.FileFormat);
 
+            //Get windows
+            var windows = WindowScanner.GetAllWindows().ToList();
+
             //Get the screenshot
             var img = Camera.TakeScreenshot(cropShot ? 1 : _Config.ImageScale);
 
@@ -136,12 +139,12 @@ namespace Screenshotter
             if (cropShot)
             {
                 //If it's a crop shot, show the Image Editor in crop shot mode
-                new frmImageEditor(img, true).Show();
+                new frmImageEditor(img, true, windows).Show();
             }
             else if (saveAs)
             {
                 //If we are Saving as, show the Save Screenshot dialog
-                new frmSaveScreenshot(img, DateTime.Now, _Config).Show();
+                new frmSaveScreenshot(img, DateTime.Now, _Config, windows).Show();
             }
             else
             {
@@ -237,6 +240,21 @@ namespace Screenshotter
         private void button2_Click(object sender, EventArgs e)
         {
             new frmImageEditor(new Bitmap(50, 50), true).Show();
+        }
+
+        private void button2_Click_1(object sender, EventArgs e)
+        {
+            var windows = WindowScanner.GetAllWindows().ToList();
+            Bitmap bmp = new Bitmap(1366, 768);
+            Graphics g = Graphics.FromImage(bmp);
+            g.Clear(Color.White);
+
+            foreach (var item in windows)
+            {
+                g.DrawRectangle(new Pen(Color.Black, 2), item.Bounds);
+            }
+
+            bmp.Save("test.bmp");
         }
     }
 }

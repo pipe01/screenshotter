@@ -24,8 +24,16 @@ namespace Screenshotter
               _ImageLocation = Point.Empty,
               _SelPoint = Point.Empty;
 
-        float _Scale = 1.0f;
+        IList<WindowScanner.Window> _Windows;
+
         uint _BlinkState = 0;
+
+        int _Scale = 100;
+        private float Scale
+        {
+            get => _Scale / 100f;
+            set => _Scale = (int)(value * 100);
+        }
 
         Rectangle _SelectionRect;
         Rectangle TempSelectionRect
@@ -39,10 +47,12 @@ namespace Screenshotter
             }
         }
 
+        Rectangle _MouseOverWindowRect = Rectangle.Empty;
+
         UndoRedo<EditorState> _Undo = new UndoRedo<EditorState>();
 
 
-        public frmImageEditor(Image img, bool cropShot = false)
+        public frmImageEditor(Image img, bool cropShot = false, IList<WindowScanner.Window> windows = null)
         {
             InitializeComponent();
             this.MouseWheel += FrmImagePreview_MouseWheel;
@@ -56,7 +66,9 @@ namespace Screenshotter
             _CropShot = cropShot;
 
             _Undo.LoadState += _Undo_LoadState;
-            
+
+            _Windows = windows;
+
             if (cropShot)
                 GoFullscreen();
         }
@@ -77,7 +89,7 @@ namespace Screenshotter
         {
             Image = e.NewState.CurrentImage;
             _ImageLocation = e.NewState.ImageLocation;
-            _Scale = e.NewState.ZoomLevel;
+            Scale = e.NewState.ZoomLevel;
 
             this.Refresh();
         }
@@ -92,34 +104,36 @@ namespace Screenshotter
         private void FrmImagePreview_MouseWheel(object sender, MouseEventArgs e)
         {
             int steps = e.Delta / 120;
-            float scaleStep = 0.2f * steps;
-            scaleStep *= _Scale;
+            int scaleStep = 20 * steps;
+            //scaleStep = (int)(scaleStep * (Scale - scaleStep / 100f));
 
             var mouse = ViewportToImage(e.Location);
 
             _Scale += scaleStep;
 
-            if (_Scale < 0.2f)
+            if (_Scale < 20)
             {
-                _Scale = 0.2f;
+                _Scale = 20;
                 scaleStep = 0;
             }
             
             _ImageLocation = new Point(
-                _ImageLocation.X - (int)(mouse.X * -scaleStep),
-                _ImageLocation.Y - (int)(mouse.Y * -scaleStep));
+                _ImageLocation.X - (int)(mouse.X * scaleStep / -100f),
+                _ImageLocation.Y - (int)(mouse.Y * scaleStep / -100f));
+
+            System.Diagnostics.Debug.WriteLine(_Scale);
 
             this.Refresh();
         }
         
         private void frmImagePreview_Paint(object sender, PaintEventArgs e)
         {
-            var size = new Size((int)(Image.Width * _Scale), (int)(Image.Height * _Scale));
+            var size = new Size((int)(Image.Width * Scale), (int)(Image.Height * Scale));
             var sourceRect = new Rectangle(
-                (int)(_ImageLocation.X / _Scale),
-                (int)(_ImageLocation.Y / _Scale),
-                (int)(this.Width / _Scale),
-                (int)(this.Height / _Scale));
+                (int)(_ImageLocation.X / Scale),
+                (int)(_ImageLocation.Y / Scale),
+                (int)(this.Width / Scale),
+                (int)(this.Height / Scale));
 
             e.Graphics.InterpolationMode = InterpolationMode.NearestNeighbor;
             e.Graphics.DrawImage(
@@ -128,20 +142,25 @@ namespace Screenshotter
                 sourceRect,
                 GraphicsUnit.Pixel);
 
-            var penColor = _BlinkState % 2 == 0 ? Color.Gray : Color.White;
+            if (_MouseOverWindowRect != Rectangle.Empty)
+            {
+                Rectangle rect = new Rectangle(Point.Subtract(_MouseOverWindowRect.Location, new Size(_ImageLocation.X, _ImageLocation.Y)), _MouseOverWindowRect.Size);
+                e.Graphics.DrawRectangle(new Pen(Color.Lime, 2), rect);
+            }
 
-            var pen = new Pen(penColor, _Scale)
+            var penColor = _BlinkState % 2 == 0 ? Color.Gray : Color.White;
+            var selPen = new Pen(penColor, Scale)
             {
                 DashStyle = DashStyle.DashDotDot
             };
-
+            
             if (_Selecting)
             {
-                e.Graphics.DrawRectangle(pen, TempSelectionRect);
+                e.Graphics.DrawRectangle(selPen, TempSelectionRect);
             }
             else if (_Selected)
             {
-                e.Graphics.DrawRectangle(pen, ImageToViewport(_SelectionRect));
+                e.Graphics.DrawRectangle(selPen, ImageToViewport(_SelectionRect));
             }
         }
 
@@ -184,6 +203,10 @@ namespace Screenshotter
             {
                 _MouseInSelection = _SelectionRect.Contains(e.Location);
             }
+
+            Point realMousePos = this.PointToScreen(e.Location);
+            _MouseOverWindowRect = GetWindowOnMouse(realMousePos)?.Bounds ?? Rectangle.Empty;
+            this.Refresh();
         }
 
         private void frmImagePreview_MouseUp(object sender, MouseEventArgs e)
@@ -209,7 +232,7 @@ namespace Screenshotter
                 else
                 {
                     _Selected = true;
-                    _SelectionRect = SnapToGrid(GetRectangle(_MovePrev, _SelPoint), _Scale);
+                    _SelectionRect = SnapToGrid(GetRectangle(_MovePrev, _SelPoint), Scale);
 
                     if (_CropShot)
                     {
@@ -232,6 +255,35 @@ namespace Screenshotter
             this.Close();
         }
 
+        WindowScanner.Window? GetWindowOnMouse(Point mousePos)
+        {
+            var windows = GetWindowsByOrder();
+
+            foreach (var item in windows)
+            {
+                if (item.Window.Bounds.Contains(mousePos))
+                    return item.Window;
+            }
+
+            return null;
+        }
+
+        List<(WindowScanner.Window Window, int ZOrder)> GetWindowsByOrder()
+        {
+            var zOrders = WindowScanner.GetZOrder(_Windows.Select(o => o.RawPtr).ToArray());
+            List<(WindowScanner.Window Window, int ZOrder)> list = new List<(WindowScanner.Window Window, int ZOrder)>();
+
+            for (int i = 0; i < zOrders.Length; i++)
+            {
+                int order = zOrders[i];
+                list.Add((_Windows[i], order));
+            }
+
+            list.Sort((a, b) => a.ZOrder.CompareTo(b.ZOrder));
+
+            return list;
+        }
+
         Rectangle GetRectangle(Point p1, Point p2)
         {
             bool invertX = _MovePrev.X > _SelPoint.X;
@@ -247,21 +299,21 @@ namespace Screenshotter
         Point ViewportToImage(Point p)
         {
             return new Point(
-                (int)((p.X + _ImageLocation.X) / _Scale),
-                (int)((p.Y + _ImageLocation.Y) / _Scale));
+                (int)((p.X + _ImageLocation.X) / Scale),
+                (int)((p.Y + _ImageLocation.Y) / Scale));
         }
         Point ImageToViewport(Point p)
         {
             return new Point(
-                (int)((p.X * _Scale) - _ImageLocation.X),
-                (int)((p.Y * _Scale) - _ImageLocation.Y));
+                (int)((p.X * Scale) - _ImageLocation.X),
+                (int)((p.Y * Scale) - _ImageLocation.Y));
         }
         Rectangle ImageToViewport(Rectangle rect)
         {
             return new Rectangle(
                 ImageToViewport(rect.Location),
-                new Size((int)(rect.Width * _Scale),
-                         (int)(rect.Height * _Scale)));
+                new Size((int)(rect.Width * Scale),
+                         (int)(rect.Height * Scale)));
         }
         Point SnapToGrid(Point p, float grid)
         {
@@ -285,10 +337,10 @@ namespace Screenshotter
 
         void ResetZoom()
         {
-            _Scale = 1.0f;
+            Scale = 1.0f;
 
-            int w = (int)(Image.Width * _Scale);
-            int h = (int)(Image.Height * _Scale);
+            int w = (int)(Image.Width * Scale);
+            int h = (int)(Image.Height * Scale);
 
             _ImageLocation = GetCenteredImageLocation(w, h);
 

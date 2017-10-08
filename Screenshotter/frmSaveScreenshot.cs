@@ -17,15 +17,17 @@ namespace Screenshotter
         Image _Image;
         DateTime _Time;
         Configuration _Config;
-        List<string> _Formats;
+        IList<string> _Formats;
+        IList<WindowScanner.Window> _Windows;
 
-        public frmSaveScreenshot(Image screenshot, DateTime time, Configuration config)
+        public frmSaveScreenshot(Image screenshot, DateTime time, Configuration config, IList<WindowScanner.Window> windows)
         {
             InitializeComponent();
 
             _Image = screenshot;
             _Time = time;
             _Config = config;
+            _Windows = windows;
         }
 
         private void frmSaveScreenshot_Load(object sender, EventArgs e)
@@ -79,7 +81,7 @@ namespace Screenshotter
 
         private void picPreview_Click(object sender, EventArgs e)
         {
-            var frm = new frmImageEditor(_Image);
+            var frm = new frmImageEditor(_Image, false, _Windows);
             frm.ShowDialog();
             _Image = frm.Image;
 
